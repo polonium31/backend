@@ -4,8 +4,8 @@ class ApiResponse extends Error {
     this.data = data;
     this.message = message;
     this.success = statusCode < 400;
-    if (statck) {
-      this.stack = statck;
+    if (stack) {
+      this.stack = stack;
     } else {
       Error.captureStackTrace(this, this.constructor);
     }
