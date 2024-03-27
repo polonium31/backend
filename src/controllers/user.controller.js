@@ -117,9 +117,9 @@ const loginUser = asyncHandler(async (req, res) => {
     httpOnly: true,
     secure: true,
   };
-  delete user.password;
-  delete user.refreshToken;
-  const loggedUser = user;
+  const loggedInUser = await User.findById(user._id).select(
+    "-password -refreshToken"
+  );
   return res
     .status(200)
     .cookie("accessToken", accessToken, options)
@@ -128,7 +128,7 @@ const loginUser = asyncHandler(async (req, res) => {
       new ApiResponse(
         200,
         {
-          user: loggedUser,
+          user: loggedInUser,
           accessToken,
           refreshToken,
         },
@@ -141,7 +141,9 @@ const logoutUser = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(
     req.user._id,
     {
-      $set: { refreshToken: undefined },
+      $unset: {
+        refreshToken: 1,
+      },
     },
     {
       new: true,
@@ -323,7 +325,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
 });
 
 const getWatchHistory = asyncHandler(async (req, res) => {
-  const user = User.aggregate([
+  const user = await User.aggregate([
     {
       $match: { _id: new mongoose.Types.ObjectId(req.user._id) },
     },
